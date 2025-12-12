@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.TeleOp;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-@TeleOp(name="RobotVroomVroom")
+@TeleOp
 public class VroomVroomManual extends LinearOpMode {
     public DcMotorEx leftFrontMotor;
     public DcMotorEx rightFrontMotor;
@@ -44,13 +44,21 @@ public class VroomVroomManual extends LinearOpMode {
         outtake = hardwareMap.get(DcMotorEx.class, "outtake");
         motion = hardwareMap.get(DcMotorEx.class, "motion");
         motion2 = hardwareMap.get(DcMotorEx.class, "motion2");
-
         waitForStart();
-
+        servo_ramp_right.setPosition(0.08);
+        servo_ramp_left.setPosition(-0.08);
         while (opModeIsActive() && !isStopRequested()) {
             moveDriveTrain();
-            updateRampServos();
 
+            if(gamepad1.y){
+
+                servo_ramp_right.setPosition(0.1);
+                servo_ramp_left.setPosition(-0.1);
+            }
+            if(gamepad1.a){
+                servo_ramp_right.setPosition(0.064);
+                servo_ramp_left.setPosition(-0.064);
+            }
             if (gamepad1.dpad_down) {
                 intake.setPower(1.0);
             } else {
@@ -73,35 +81,6 @@ public class VroomVroomManual extends LinearOpMode {
 
             sleep(20);
         }
-    }
-
-    private void updateRampServos() {
-        if (gamepad1.y) {
-            currentAngle = PRESET_HIGH;
-            //yPressedLast = true;
-        }
-
-        if (gamepad1.a) {
-            currentAngle = PRESET_LOW;
-            //aPressedLast = true;
-        }
-        if (gamepad1.x) {
-            currentAngle -= ANGLE_STEP;
-            if (currentAngle < MIN_ANGLE) currentAngle = MIN_ANGLE;
-            //xPressedLast = true;
-        }
-
-        if (gamepad1.b) {
-            currentAngle += ANGLE_STEP;
-            if (currentAngle > MAX_ANGLE) currentAngle = MAX_ANGLE;
-            //bPressedLast = true;
-        }
-
-        double servoPos = currentAngle / 180.0;
-        if (servoPos < 0.0) servoPos = 0.0;
-        if (servoPos > 1.0) servoPos = 1.0;
-        servo_ramp_left.setPosition(servoPos);
-        servo_ramp_right.setPosition(servoPos);
     }
 
     public void moveDriveTrain() {
