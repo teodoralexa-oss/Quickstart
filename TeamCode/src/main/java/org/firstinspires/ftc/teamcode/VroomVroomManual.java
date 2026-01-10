@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-
 @TeleOp
 public class VroomVroomManual extends LinearOpMode {
     //---MOTORS---\\
@@ -24,7 +23,7 @@ public class VroomVroomManual extends LinearOpMode {
     public CRServo intake3left;
     public CRServo intake3right;
     //---OTHER---\\
-    double ticks = 2786.2;
+    double ticks = 537.7;
     double newTarget;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -43,6 +42,7 @@ public class VroomVroomManual extends LinearOpMode {
         intake3left = hardwareMap.get(CRServo.class, "servo5");
         intake3right = hardwareMap.get(CRServo.class, "servo6");
         //---LOGIC---\\
+        outtake2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         outtake1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         leftBackMotor.setDirection(DcMotorEx.Direction.REVERSE);
         leftFrontMotor.setDirection(DcMotorEx.Direction.REVERSE);
@@ -51,42 +51,61 @@ public class VroomVroomManual extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             moveDriveTrain();
 
-            if(gamepad1.a){
-                intake1left.setPower(-1);
-                intake1right.setPower(1);
-                intake2left.setPower(-1);
-                intake2right.setPower(1);
-                intake3left.setPower(1);
-                intake3right.setPower(-1);
-            }
-            if(gamepad1.circle){
-                intake1left.setPower(0);
-                intake1right.setPower(0);
-                intake2left.setPower(0);
-                intake2right.setPower(0);
-                intake3left.setPower(0);
-                intake3right.setPower(0);
-            }
+//            if(gamepad1.a){
+//                intake1left.setPower(-1);
+//                intake1right.setPower(1);
+//                intake2left.setPower(-1);
+//                intake2right.setPower(1);
+//                intake3left.setPower(1);
+//                intake3right.setPower(-1);
+//            }
+//            if(gamepad1.circle){
+//                intake1left .setPower(0);
+//                intake1right .setPower(0);
+//                intake2left.s     etPower(0);
+//                intake2right.setPower(0);
+//                intake3right.setPower(0);
+//            }
 
-            if (gamepad1.right_bumper) {
-                Encoder(2);
+            if (gamepad1.circle) {
+                Encoder1(4);
+                Encoder2(4);
+            }
+            if(gamepad1.square){
+                Tracker1();
+                Tracker2();
             }
 
             //sleep(20);
         }
     }
-    public void Encoder(int turnage){
-        outtake1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        newTarget=turnage/ticks;
+    public void Encoder1(int turnage){
+        newTarget=ticks/turnage;
         outtake1.setTargetPosition((int)newTarget);
-        outtake1.setPower(0.6);
+        outtake1.setPower(1);
         outtake1.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+    }
+    public void Encoder2(int turnage){
+        newTarget=ticks/turnage;
+        outtake2.setTargetPosition((int)newTarget);
+        outtake2.setPower(-1);
+        outtake2.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+    }
+    public void Tracker1(){
+        outtake1.setTargetPosition(0);
+        outtake1.setPower(0.8);
+        outtake1.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+    }
+    public void Tracker2(){
+        outtake2.setTargetPosition(0);
+        outtake2.setPower(-0.8);
+        outtake2.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
     }
 
     public void moveDriveTrain() {
         double vertical = -gamepad1.left_stick_y;
-        double horizontal = gamepad1.right_stick_x;
-        double turn = gamepad1.left_stick_x;
+        double horizontal = gamepad1.left_stick_x;
+        double turn = gamepad1.right_stick_x;
 
         double denominator = Math.max(Math.abs(vertical) + Math.abs(horizontal) + Math.abs(turn), 1);
 
