@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,7 +14,8 @@ public class VroomVroomManual extends LinearOpMode {
     public DcMotorEx rightFrontMotor;
     public DcMotorEx leftBackMotor;
     public DcMotorEx rightBackMotor;
-    public DcMotorEx intake1;
+    public DcMotorEx outtake1;
+    public DcMotorEx outtake2;
     //---SERVO---\\
     public CRServo intake1left;
     public CRServo intake1right;
@@ -21,7 +23,9 @@ public class VroomVroomManual extends LinearOpMode {
     public CRServo intake2right;
     public CRServo intake3left;
     public CRServo intake3right;
-
+    //---OTHER---\\
+    double ticks = 2786.2;
+    double newTarget;
     @Override
     public void runOpMode() throws InterruptedException {
         //---MOTORS---\\
@@ -29,7 +33,8 @@ public class VroomVroomManual extends LinearOpMode {
         rightFrontMotor = hardwareMap.get(DcMotorEx.class, "dreaptaFataMotor");
         leftBackMotor = hardwareMap.get(DcMotorEx.class, "stangaSpateMotor");
         rightBackMotor = hardwareMap.get(DcMotorEx.class, "dreaptaSpateMotor");
-        intake1 = hardwareMap.get(DcMotorEx.class, "motion");
+        outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
+        outtake2 = hardwareMap.get(DcMotorEx.class, "outtake2");
         //---SERVO---\\
         intake1left = hardwareMap.get(CRServo.class, "servo1");
         intake1right = hardwareMap.get(CRServo.class, "servo2");
@@ -38,6 +43,7 @@ public class VroomVroomManual extends LinearOpMode {
         intake3left = hardwareMap.get(CRServo.class, "servo5");
         intake3right = hardwareMap.get(CRServo.class, "servo6");
         //---LOGIC---\\
+        outtake1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         leftBackMotor.setDirection(DcMotorEx.Direction.REVERSE);
         leftFrontMotor.setDirection(DcMotorEx.Direction.REVERSE);
         waitForStart();
@@ -45,32 +51,36 @@ public class VroomVroomManual extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             moveDriveTrain();
 
-            if(gamepad1.cross){
-                intake1left.setPower(4);
-                intake1right.setPower(-4);
-                intake2left.setPower(4);
-                intake2right.setPower(-4);
-                intake3left.setPower(4);
-                intake3right.setPower(-4);
+            if(gamepad1.a){
+                intake1left.setPower(-1);
+                intake1right.setPower(1);
+                intake2left.setPower(-1);
+                intake2right.setPower(1);
+                intake3left.setPower(1);
+                intake3right.setPower(-1);
             }
             if(gamepad1.circle){
                 intake1left.setPower(0);
                 intake1right.setPower(0);
                 intake2left.setPower(0);
                 intake2right.setPower(0);
-                intake3left.setPower(1);
-                intake3right.setPower(-1);
+                intake3left.setPower(0);
+                intake3right.setPower(0);
             }
 
             if (gamepad1.right_bumper) {
-                intake1.setPower(1.0);
-
-            } else {
-                intake1.setPower(0.0);
+                Encoder(2);
             }
 
             //sleep(20);
         }
+    }
+    public void Encoder(int turnage){
+        outtake1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        newTarget=turnage/ticks;
+        outtake1.setTargetPosition((int)newTarget);
+        outtake1.setPower(0.6);
+        outtake1.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
     }
 
     public void moveDriveTrain() {
