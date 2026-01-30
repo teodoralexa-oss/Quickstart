@@ -1,105 +1,73 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+
+import org.firstinspires.ftc.teamcode.Auto.Sorter;
+import org.firstinspires.ftc.teamcode.TeleOp.AprilTag;
+
 @TeleOp
 public class VroomVroomManual extends LinearOpMode {
-    //---MOTORS---\\
+
     public DcMotorEx leftFrontMotor;
     public DcMotorEx rightFrontMotor;
     public DcMotorEx leftBackMotor;
     public DcMotorEx rightBackMotor;
     public DcMotorEx outtake1;
     public DcMotorEx outtake2;
-    //---SERVO---\\
+
     public CRServo intake1left;
     public CRServo intake1right;
     public CRServo intake2left;
     public CRServo intake2right;
     public CRServo intake3left;
     public CRServo intake3right;
-    //---OTHER---\\
-    double ticks = 537.7;
-    double newTarget;
+
+    AprilTag aprilTag = new AprilTag();
+    Sorter sorter = new Sorter();
+
     @Override
-    public void runOpMode() throws InterruptedException {
-        //---MOTORS---\\
+    public void runOpMode() {
+
         leftFrontMotor = hardwareMap.get(DcMotorEx.class, "stangaFataMotor");
         rightFrontMotor = hardwareMap.get(DcMotorEx.class, "dreaptaFataMotor");
         leftBackMotor = hardwareMap.get(DcMotorEx.class, "stangaSpateMotor");
         rightBackMotor = hardwareMap.get(DcMotorEx.class, "dreaptaSpateMotor");
-        outtake1 = hardwareMap.get(DcMotorEx.class, "outtake1");
-        outtake2 = hardwareMap.get(DcMotorEx.class, "outtake2");
-        //---SERVO---\\
-        intake1left = hardwareMap.get(CRServo.class, "servo1");
-        intake1right = hardwareMap.get(CRServo.class, "servo2");
-        intake2left = hardwareMap.get(CRServo.class, "servo3");
-        intake2right = hardwareMap.get(CRServo.class, "servo4");
-        intake3left = hardwareMap.get(CRServo.class, "servo5");
-        intake3right = hardwareMap.get(CRServo.class, "servo6");
-        //---LOGIC---\\
-        outtake2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        outtake1 = hardwareMap.get(DcMotorEx.class, "l1");
+        outtake2 = hardwareMap.get(DcMotorEx.class, "l2");
+
         outtake1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         leftBackMotor.setDirection(DcMotorEx.Direction.REVERSE);
         leftFrontMotor.setDirection(DcMotorEx.Direction.REVERSE);
+        outtake1.setDirection(DcMotorEx.Direction.REVERSE);
+
+        MotorConfigurationType motor = outtake1.getMotorType();
+        motor.setAchieveableMaxRPMFraction(1.0);
+        outtake1.setMotorType(motor);
+        outtake2.setMotorType(motor);
+
+        aprilTag.init(hardwareMap, telemetry);
+        sorter.init(hardwareMap);
+
         waitForStart();
 
-        while (opModeIsActive() && !isStopRequested()) {
+        while (opModeIsActive()) {
+
+            aprilTag.update();
+
+            sorter.update(gamepad2.dpad_left, gamepad2.dpad_right);
+
             moveDriveTrain();
 
-//            if(gamepad1.a){
-//                intake1left.setPower(-1);
-//                intake1right.setPower(1);
-//                intake2left.setPower(-1);
-//                intake2right.setPower(1);
-//                intake3left.setPower(1);
-//                intake3right.setPower(-1);
-//            }
-//            if(gamepad1.circle){
-//                intake1left .setPower(0);
-//                intake1right .setPower(0);
-//                intake2left.s     etPower(0);
-//                intake2right.setPower(0);
-//                intake3right.setPower(0);
-//            }
+            double launchStick = gamepad2.left_stick_y;
+            outtake1.setPower(-launchStick);
+            outtake2.setPower(-launchStick);
 
-            if (gamepad1.circle) {
-                Encoder1(4);
-                Encoder2(4);
-            }
-            if(gamepad1.square){
-                Tracker1();
-                Tracker2();
-            }
-
-            //sleep(20);
+            telemetry.update();
         }
-    }
-    public void Encoder1(int turnage){
-        newTarget=ticks/turnage;
-        outtake1.setTargetPosition((int)newTarget);
-        outtake1.setPower(1);
-        outtake1.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-    }
-    public void Encoder2(int turnage){
-        newTarget=ticks/turnage;
-        outtake2.setTargetPosition((int)newTarget);
-        outtake2.setPower(-1);
-        outtake2.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-    }
-    public void Tracker1(){
-        outtake1.setTargetPosition(0);
-        outtake1.setPower(0.8);
-        outtake1.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-    }
-    public void Tracker2(){
-        outtake2.setTargetPosition(0);
-        outtake2.setPower(-0.8);
-        outtake2.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
     }
 
     public void moveDriveTrain() {
