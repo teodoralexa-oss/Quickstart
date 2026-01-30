@@ -1,60 +1,60 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 @TeleOp(name="Flywheel PIDF Test")
 public class FlywheelPIDTest extends LinearOpMode {
 
-    DcMotorEx flywheel;
+    DcMotorEx fly;
 
-    double targetRPM = 3000;
+    double targetRPM = 6000;
 
-    double P = 15;
-    double I = 0;
-    double D = 0;
-    double F = 11.5;
+    double kP = 0.00035;
+    double kI = 0.000001;
+    double kD = 0.00001;
+    double kF = 0.00017;
+
+    double lastError = 0;
+    double integralSum = 0;
 
     @Override
     public void runOpMode() {
 
-        flywheel = hardwareMap.get(DcMotorEx.class, "turret");
-        flywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-
-        flywheel.setVelocityPIDFCoefficients(P, I, D, F);
+        fly = hardwareMap.get(DcMotorEx.class, "l1");
+        fly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
 
         while (opModeIsActive()) {
 
-            if (gamepad1.dpad_up) targetRPM += 50;
-            if (gamepad1.dpad_down) targetRPM -= 50;
+            if (gamepad1.a) targetRPM = 6000;
+            if (gamepad1.b) targetRPM = 0;
 
-            if (gamepad1.a) P += 0.5;
-            if (gamepad1.b) P -= 0.5;
+            double velocity = fly.getVelocity();
+            double currentRPM = velocity * 60 / 28;
 
-            if (gamepad1.x) F += 0.1;
-            if (gamepad1.y) F -= 0.1;
+            double error = targetRPM - currentRPM;
+            integralSum += error;
+            double derivative = error - lastError;
 
-            flywheel.setVelocity(rpmToTicks(targetRPM));
+            double power =
+                    kP * error +
+                            kI * integralSum +
+                            kD * derivative +
+                            kF * targetRPM;
+
+            power = Math.max(0, Math.min(1, power));
+
+            fly.setPower(power);
+
+            lastError = error;
 
             telemetry.addData("Target RPM", targetRPM);
-            telemetry.addData("Actual RPM", ticksToRPM(flywheel.getVelocity()));
-            telemetry.addData("P", P);
-            telemetry.addData("F", F);
+            telemetry.addData("Current RPM", currentRPM);
+            telemetry.addData("Power", power);
             telemetry.update();
-
-            flywheel.setVelocityPIDFCoefficients(P, I, D, F);
         }
-    }
-
-    double rpmToTicks(double rpm) {
-        return rpm * 28 / 60.0;
-    }
-
-    double ticksToRPM(double ticks) {
-        return ticks * 60.0 / 28.0;
     }
 }

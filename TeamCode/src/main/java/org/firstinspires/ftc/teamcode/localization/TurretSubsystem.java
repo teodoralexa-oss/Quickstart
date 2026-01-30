@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 public class TurretSubsystem {
 
-    DcMotorEx turret;
+    public DcMotorEx turret;
 
     double goalX = 144;
     double goalY = 144;
@@ -28,7 +28,9 @@ public class TurretSubsystem {
         turret = hw.get(DcMotorEx.class, "turret");
 
         turret.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setTargetPosition(0);
         turret.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        turret.setPower(0);
         turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }
 

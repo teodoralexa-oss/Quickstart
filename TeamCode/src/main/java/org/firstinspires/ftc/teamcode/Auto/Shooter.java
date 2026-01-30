@@ -1,58 +1,44 @@
 package org.firstinspires.ftc.teamcode.Auto;
-
+import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import org.firstinspires.ftc.teamcode.TeleOp.AprilTag;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import org.firstinspires.ftc.teamcode.VroomVroomManual;
+import org.firstinspires.ftc.teamcode.localization.SimplePedroDrive;
+import org.firstinspires.ftc.teamcode.localization.TurretSubsystem;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
-public class Shooter {
+@TeleOp
+public class Shooter extends LinearOpMode {
 
-    private DcMotorEx turret;
-    private AprilTag aprilTag;
+    SimplePedroDrive drive;
+    TurretSubsystem turret;
 
-    private final double kP = 0.015;
-    private final double maxPower = 0.5;
-    private final double deadZone = 0.8;
+    @Override
+    public void runOpMode() {
 
-    private final double searchPower = 0.2;
-    private int searchDirection = 1;
+        drive = new SimplePedroDrive(hardwareMap);
+        turret = new TurretSubsystem(hardwareMap);
 
-    public void init(HardwareMap hwMap, AprilTag aprilTag) {
-        this.aprilTag = aprilTag;
-        turret = hwMap.get(DcMotorEx.class, "turret");
-        turret.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-        turret.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-    }
+        waitForStart();
 
-    public void update(int targetId) {
-        AprilTagDetection tag = aprilTag.getTagBySpecificid(targetId);
+        while (opModeIsActive()) {
 
-        if (tag == null) {
-            turret.setPower(searchPower * searchDirection);
-            return;
+            drive.update();
+
+            Pose pose = drive.getPose();
+
+            turret.update(pose);
+
+            if (gamepad1.x) turret.setBlueGoal();
+            if (gamepad1.b) turret.setRedGoal();
+
+            telemetry.addData("Heading", Math.toDegrees(pose.getHeading()));
+            telemetry.addData("Turret ticks", turret.turret.getCurrentPosition());
+            telemetry.update();
         }
-
-        double error = tag.ftcPose.bearing;
-
-        if (Math.abs(error) < deadZone) {
-            turret.setPower(0);
-            return;
-        }
-
-        double power = error * kP;
-
-        if (power > maxPower) power = maxPower;
-        if (power < -maxPower) power = -maxPower;
-
-        turret.setPower(power);
-    }
-
-    public void reverseSearchDirection() {
-        searchDirection *= -1;
-    }
-
-    public void stop() {
-        turret.setPower(0);
     }
 }
+

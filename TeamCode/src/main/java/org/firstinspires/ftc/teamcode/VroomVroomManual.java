@@ -17,14 +17,6 @@ public class VroomVroomManual extends LinearOpMode {
     public DcMotorEx leftBackMotor;
     public DcMotorEx rightBackMotor;
     public DcMotorEx outtake1;
-    public DcMotorEx outtake2;
-
-    public CRServo intake1left;
-    public CRServo intake1right;
-    public CRServo intake2left;
-    public CRServo intake2right;
-    public CRServo intake3left;
-    public CRServo intake3right;
 
     AprilTag aprilTag = new AprilTag();
     Sorter sorter = new Sorter();
@@ -37,7 +29,6 @@ public class VroomVroomManual extends LinearOpMode {
         leftBackMotor = hardwareMap.get(DcMotorEx.class, "stangaSpateMotor");
         rightBackMotor = hardwareMap.get(DcMotorEx.class, "dreaptaSpateMotor");
         outtake1 = hardwareMap.get(DcMotorEx.class, "l1");
-        outtake2 = hardwareMap.get(DcMotorEx.class, "l2");
 
         outtake1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         leftBackMotor.setDirection(DcMotorEx.Direction.REVERSE);
@@ -47,7 +38,6 @@ public class VroomVroomManual extends LinearOpMode {
         MotorConfigurationType motor = outtake1.getMotorType();
         motor.setAchieveableMaxRPMFraction(1.0);
         outtake1.setMotorType(motor);
-        outtake2.setMotorType(motor);
 
         aprilTag.init(hardwareMap, telemetry);
         sorter.init(hardwareMap);
@@ -64,7 +54,6 @@ public class VroomVroomManual extends LinearOpMode {
 
             double launchStick = gamepad2.left_stick_y;
             outtake1.setPower(-launchStick);
-            outtake2.setPower(-launchStick);
 
             telemetry.update();
         }
