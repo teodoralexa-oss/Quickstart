@@ -42,7 +42,7 @@ public class MecanumAutoo extends LinearOpMode {
             if(go){
                 sleep(25000);
                 moove();
-                sleep(2000);
+                sleep(1000);
                 end();
                 go=false;
             }

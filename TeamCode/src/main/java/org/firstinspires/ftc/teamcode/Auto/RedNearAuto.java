@@ -17,18 +17,18 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Configurable
 @Autonomous
-public class BlueNearAuto extends LinearOpMode {
+public class RedNearAuto extends LinearOpMode {
     private Follower follower;
     private Timer pathTimer, shootTimer, waitTimer, turnTimer;
     private int pathState;
 
-    private Pose startPose = new Pose(26, 130, Math.toRadians(144));
-    private Pose shootPose = new Pose(58, 85, Math.toRadians(134.7));
-    private Pose turnPose = new Pose(56, 90, Math.toRadians(310));
-    private Pose rowPose = new Pose(28.5, 87, Math.toRadians(0));
-    private Pose stopPose = new Pose(64, 72, Math.toRadians(180));
-    private Pose rowPose2 = new Pose(19, 57, Math.toRadians(0));
-    private Pose stopPose2 = new Pose(22, 57, Math.toRadians(0));
+    private Pose startPose = new Pose(117, 130, Math.toRadians(35));
+    private Pose shootPose = new Pose(80, 82, Math.toRadians(49));
+    private Pose turnPose = new Pose(83, 79.5, Math.toRadians(0));
+    private Pose rowPose = new Pose(120, 77.5, Math.toRadians(180));
+    private Pose stopPose = new Pose(82, 55, Math.toRadians(0));
+    private Pose rowPose2 = new Pose(120, 55, Math.toRadians(180));
+    private Pose stopPose2 = new Pose(120, 53, Math.toRadians(180));
     private Pose barPose = new Pose(19, 59, Math.toRadians(0));
 
     private DcMotorEx intake1;

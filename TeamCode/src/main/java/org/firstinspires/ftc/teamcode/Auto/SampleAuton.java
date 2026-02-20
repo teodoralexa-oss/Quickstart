@@ -19,22 +19,35 @@ public class SampleAuton extends LinearOpMode {
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(0)); // Start Pose of our robot.
-    private final Pose finalPose = new Pose(24, 0, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private Path scorePreload;
+    private Pose startPose = new Pose(26, 130, Math.toRadians(144));
+    private Pose shootPose = new Pose(53, 85, Math.toRadians(130));
+    private Pose rowPose = new Pose(15, 84, Math.toRadians(180));
+
+    private Path start_shoot, shoot_pickup, pickup_shoot;
     private PathChain grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3;
     public void buildPaths() {
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
-        scorePreload = new Path(new BezierLine(startPose, finalPose));
-        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), finalPose.getHeading());
+        start_shoot = new Path(new BezierLine(startPose, shootPose));
+        start_shoot.setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading());
+        shoot_pickup = new Path(new BezierLine(shootPose, rowPose));
+        shoot_pickup.setConstantHeadingInterpolation(rowPose.getHeading());//turn first
+        pickup_shoot = new Path(new BezierLine(rowPose, shootPose));
+        pickup_shoot.setLinearHeadingInterpolation(rowPose.getHeading(), shootPose.getHeading());
     }
+
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.followPath(scorePreload);
-                setPathState(1);
+                if(!follower.isBusy()) {
+                follower.followPath(start_shoot,true);
+                setPathState(1);}
                 break;
             case 1:
+                if(!follower.isBusy()) {
+                follower.followPath(shoot_pickup);
+                setPathState(99);}
+                break;
+            case 99:
             /* You could check for
             - Follower State: "if(!follower.isBusy()) {}"
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
