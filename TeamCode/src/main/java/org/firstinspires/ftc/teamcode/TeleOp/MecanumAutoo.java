@@ -40,7 +40,7 @@ public class MecanumAutoo extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
 
             if(go){
-                sleep(25000);
+                sleep(28000);
                 moove();
                 sleep(1000);
                 end();

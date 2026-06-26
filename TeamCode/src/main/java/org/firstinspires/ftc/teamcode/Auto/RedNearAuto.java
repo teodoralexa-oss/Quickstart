@@ -27,7 +27,7 @@ public class RedNearAuto extends LinearOpMode {
     private Pose turnPose = new Pose(83, 79.5, Math.toRadians(0));
     private Pose rowPose = new Pose(120, 77.5, Math.toRadians(180));
     private Pose stopPose = new Pose(82, 55, Math.toRadians(0));
-    private Pose rowPose2 = new Pose(120, 55, Math.toRadians(180));
+    private Pose rowPose2 = new Pose(120, 52, Math.toRadians(180));
     private Pose stopPose2 = new Pose(120, 53, Math.toRadians(180));
     private Pose barPose = new Pose(19, 59, Math.toRadians(0));
 

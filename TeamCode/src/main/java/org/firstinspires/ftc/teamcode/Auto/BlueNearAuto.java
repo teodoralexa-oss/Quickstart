@@ -23,13 +23,14 @@ public class BlueNearAuto extends LinearOpMode {
     private int pathState;
 
     private Pose startPose = new Pose(26, 130, Math.toRadians(144));
-    private Pose shootPose = new Pose(58, 85, Math.toRadians(134.7));
-    private Pose turnPose = new Pose(56, 90, Math.toRadians(310));
-    private Pose rowPose = new Pose(28.5, 87, Math.toRadians(0));
-    private Pose stopPose = new Pose(64, 72, Math.toRadians(180));
-    private Pose rowPose2 = new Pose(19, 57, Math.toRadians(0));
+    private Pose shootPose = new Pose(58, 87, Math.toRadians(134.7));
+    private Pose turnPose = new Pose(59, 83, Math.toRadians(130));
+    private Pose approachRow = new Pose(35, 92, Math.toRadians(0));
+    private Pose rowPose = new Pose(26, 92, Math.toRadians(0));
+    private Pose stopPose = new Pose(52, 61, Math.toRadians(180));
+    private Pose approachRow2 = new Pose(35, 58, Math.toRadians(0));
+    private Pose rowPose2 = new Pose(23, 58, Math.toRadians(0));
     private Pose stopPose2 = new Pose(22, 57, Math.toRadians(0));
-    private Pose barPose = new Pose(19, 59, Math.toRadians(0));
 
     private DcMotorEx intake1;
     private DcMotorEx intake2;
@@ -40,9 +41,7 @@ public class BlueNearAuto extends LinearOpMode {
     private Servo barrier2;
     private FlywheelPIDTest flywheel;
 
-    private Path start_shoot, turn_to_intake, go_to_row, pickup_shoot, shoot_stop, go_to_row2, pickup_shoot2,done_pose;
-
-    double reverseOuttakeRPM = 500;
+    private Path start_shoot, turn_to_intake, approach_row, go_to_row, pickup_shoot, shoot_stop, approach_row2, go_to_row2, pickup_shoot2, done_pose;
 
     public void buildPaths() {
         start_shoot = new Path(new BezierLine(startPose, shootPose));
@@ -51,7 +50,10 @@ public class BlueNearAuto extends LinearOpMode {
         turn_to_intake = new Path(new BezierLine(shootPose, turnPose));
         turn_to_intake.setLinearHeadingInterpolation(shootPose.getHeading(), turnPose.getHeading());
 
-        go_to_row = new Path(new BezierLine(turnPose, rowPose));
+        approach_row = new Path(new BezierLine(turnPose, approachRow));
+        approach_row.setConstantHeadingInterpolation(approachRow.getHeading());
+
+        go_to_row = new Path(new BezierLine(approachRow, rowPose));
         go_to_row.setConstantHeadingInterpolation(rowPose.getHeading());
 
         pickup_shoot = new Path(new BezierLine(rowPose, shootPose));
@@ -60,7 +62,10 @@ public class BlueNearAuto extends LinearOpMode {
         shoot_stop = new Path(new BezierLine(shootPose, stopPose));
         shoot_stop.setLinearHeadingInterpolation(shootPose.getHeading(), stopPose.getHeading());
 
-        go_to_row2 = new Path(new BezierLine(stopPose, rowPose2));
+        approach_row2 = new Path(new BezierLine(stopPose, approachRow2));
+        approach_row2.setConstantHeadingInterpolation(approachRow2.getHeading());
+
+        go_to_row2 = new Path(new BezierLine(approachRow2, rowPose2));
         go_to_row2.setConstantHeadingInterpolation(rowPose2.getHeading());
 
         pickup_shoot2 = new Path(new BezierLine(rowPose2, shootPose));
@@ -109,103 +114,112 @@ public class BlueNearAuto extends LinearOpMode {
 
             case 4:
                 if (!follower.isBusy()) {
-                    startRowIntake();
                     follower.setMaxPower(0.8);
-                    follower.followPath(go_to_row, true);
+                    follower.followPath(approach_row, true);
                     setPathState(5);
                 }
                 break;
 
             case 5:
                 if (!follower.isBusy()) {
-                    stopRowIntake();
-                    follower.setMaxPower(1.0);
-                    follower.followPath(pickup_shoot, true);
+                    startRowIntake();
+                    follower.setMaxPower(0.4);
+                    follower.followPath(go_to_row, true);
                     setPathState(6);
                 }
                 break;
 
             case 6:
                 if (!follower.isBusy()) {
-                    flywheel.targetRPM = 1750;
-                    flywheel.loop(true);
-                    waitTimer.resetTimer();
+                    stopRowIntake();
+                    follower.setMaxPower(1.0);
+                    follower.followPath(pickup_shoot, true);
                     setPathState(7);
                 }
                 break;
 
             case 7:
-                flywheel.loop(true);
-                if (waitTimer.getElapsedTimeSeconds() > 1.0 && flywheel.isAtSpeed(100)) {
-                    startIntake();
-                    shootTimer.resetTimer();
+                if (!follower.isBusy()) {
+                    flywheel.targetRPM = 1750;
+                    flywheel.loop(true);
+                    waitTimer.resetTimer();
                     setPathState(8);
                 }
                 break;
 
             case 8:
                 flywheel.loop(true);
-                if (shootTimer.getElapsedTimeSeconds() > 1.5) {
-                    stopIntake();
-                    stopFlywheelAndRelease();
-                    follower.followPath(shoot_stop, true);
+                if (waitTimer.getElapsedTimeSeconds() > 1.0 && flywheel.isAtSpeed(100)) {
+                    startIntake();
+                    shootTimer.resetTimer();
                     setPathState(9);
                 }
                 break;
 
             case 9:
-                if (!follower.isBusy()) {
-                    turnTimer.resetTimer();
-                    follower.setPose(stopPose);
+                flywheel.loop(true);
+                if (shootTimer.getElapsedTimeSeconds() > 1.5) {
+                    stopIntake();
+                    stopFlywheelAndRelease();
+                    follower.followPath(shoot_stop, true);
                     setPathState(10);
                 }
                 break;
 
             case 10:
-                if (turnTimer.getElapsedTimeSeconds() > 0.5) {
-                    startRowIntake();
+                if (!follower.isBusy()) {
                     follower.setMaxPower(0.8);
-                    follower.followPath(go_to_row2, true);
+                    follower.followPath(approach_row2, true);
                     setPathState(11);
                 }
                 break;
 
             case 11:
                 if (!follower.isBusy()) {
-                    stopRowIntake();
-                    follower.setMaxPower(1.0);
-                    follower.followPath(pickup_shoot2, true);
+                    startRowIntake();
+                    follower.setMaxPower(0.4);
+                    follower.followPath(go_to_row2, true);
                     setPathState(12);
                 }
                 break;
 
             case 12:
                 if (!follower.isBusy()) {
-                    flywheel.targetRPM = 1750;
-                    flywheel.loop(true);
-                    waitTimer.resetTimer();
+                    stopRowIntake();
+                    follower.setMaxPower(1.0);
+                    follower.followPath(pickup_shoot2, true);
                     setPathState(13);
                 }
                 break;
 
             case 13:
-                flywheel.loop(true);
-                if (waitTimer.getElapsedTimeSeconds() > 1.0 && flywheel.isAtSpeed(100)) {
-                    startIntake();
-                    shootTimer.resetTimer();
+                if (!follower.isBusy()) {
+                    flywheel.targetRPM = 1750;
+                    flywheel.loop(true);
+                    waitTimer.resetTimer();
                     setPathState(14);
                 }
                 break;
 
             case 14:
                 flywheel.loop(true);
-                if (shootTimer.getElapsedTimeSeconds() > 3.0) {
-                    stopIntake();
-                    stopFlywheelAndRelease();
+                if (waitTimer.getElapsedTimeSeconds() > 1.0 && flywheel.isAtSpeed(100)) {
+                    startIntake();
+                    shootTimer.resetTimer();
                     setPathState(15);
                 }
                 break;
+
             case 15:
+                flywheel.loop(true);
+                if (shootTimer.getElapsedTimeSeconds() > 3.0) {
+                    stopIntake();
+                    stopFlywheelAndRelease();
+                    setPathState(16);
+                }
+                break;
+
+            case 16:
                 follower.followPath(done_pose, true);
                 setPathState(99);
                 break;
@@ -292,12 +306,10 @@ public class BlueNearAuto extends LinearOpMode {
     }
 
     public void openBarriers() {
-        //barrier1.setPosition(0.20);
         barrier2.setPosition(0.80);
     }
 
     public void closeBarriers() {
-        //barrier1.setPosition(0.5);
         barrier2.setPosition(0.5);
     }
 
